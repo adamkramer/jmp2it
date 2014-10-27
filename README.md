@@ -11,8 +11,8 @@ The file will be mapped to memory and maintain a handle, allowing shellcode
 to egghunt for second stage payload as would have happened in original loader
 
 * Warning: Patches are dynamically written to disk - ensure you have a backup *
-* 
-Usage: jmp2it.exe <file containing shellcode> <file offset to transfer EIP to>
+
+Usage: jmp2it.exe [file containing shellcode] [file offset to transfer EIP to]
 Example: jmp2it.exe malware.doc 0x15C
 
 Optional extras as 3rd parameter (only one may be used):
