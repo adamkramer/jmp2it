@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
 	/* Check if 'addhandle' parameter has been requested */
 	/* N.B. Argument load is a little messy - will tidy up if more functionality is added */
- if (!strcmp(argv[3], "addhandle"))
+	if (!strcmp(argv[3], "addhandle"))
 	{
 	
 		wchar_t z[MAX_PATH];
