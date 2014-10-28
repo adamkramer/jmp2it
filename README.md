@@ -12,18 +12,19 @@ Usage: jmp2it.exe [file containing shellcode] [file offset to transfer EIP to]
 
 Example: jmp2it.exe malware.doc 0x15C
 
-  Explaination: The file will be mapped and code at 0x15C will immediately run
+ = Explaination: The file will be mapped and code at 0x15C will immediately run
   
 Example: jmp2it.exe malware.doc 0x15C pause
 
-  Explaination: As above, but the first two bytes swapped to cause a pause loop
+  = Explaination: As above, but the first two bytes swapped to cause a pause loop
   
 Example: jmp2it.exe malware.doc 0x15C addhandle another.doc pause
 
-  Explaination: As above, but will create additional handle to specified file
+  = Explaination: As above, but will create additional handle to specified file
 
 Optional extras (to be added after first two parameters):
-  addhandle <path to file> - Create an arbatory handle to a specified file
+
+addhandle <path to file> - Create an arbatory handle to a specified file
   
 Only one of the following two may be used:
 
