@@ -15,48 +15,46 @@
 
 #include "stdafx.h"
 #include "windows.h"
-#include "Strsafe.h"
-
-using namespace System;
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {
 
 	/* Intro line */
-	Console::WriteLine(L"** JMP2IT v1.1 - Created by Adam Kramer [2014] - Inspired by Malhost-Setup **");
+	printf("** JMP2IT v1.3 - Created by Adam Kramer [2014] - Inspired by Malhost-Setup **\n");
 	
-	/* Check that we have received the required arguments */
+	/* Check that we have received the required arguments - if not, display help page */
 	if (argc < 3)
 	{
-		Console::WriteLine(L"This will allow you to transfer EIP control to a specified offset within a file");
-		Console::WriteLine(L"containing shellcode and then pause to support a malware analysis investigation");
-		Console::WriteLine(L"The file will be mapped to memory and maintain a handle, allowing shellcode");
-		Console::WriteLine(L"to egghunt for second stage payload as would have happened in original loader");
-		Console::WriteLine(L"-------------------------------------------------------------------------------");
-		Console::WriteLine(L"* WARNING: Patches are dynamically written to disk - ensure you have a backup *");
-		Console::WriteLine(L"-------------------------------------------------------------------------------");
-		Console::WriteLine(L"Usage: jmp2it.exe <file containing shellcode> <file offset to transfer EIP to>");
-		Console::WriteLine(L"Example: jmp2it.exe malware.doc 0x15C");
-		Console::WriteLine(L"  Explaination: The file will be mapped and code at 0x15C will immediately run");
-		Console::WriteLine(L"Example: jmp2it.exe malware.doc 0x15C pause");
-		Console::WriteLine(L"  Explaination: As above, but the first two bytes swapped to cause a pause loop");
-		Console::WriteLine(L"Example: jmp2it.exe malware.doc 0x15C addhandle another.doc pause");
-		Console::WriteLine(L"  Explaination: As above, but will create additional handle to specified file");
-		Console::WriteLine(L"-------------------------------------------------------------------------------");
-		Console::WriteLine(L"Optional extras (to be added after first two parameters):");
-		Console::WriteLine(L"  addhandle <path to file> - Create an arbatory handle to a specified file");
-		Console::WriteLine(L"Only one of the following two may be used:");
-		Console::WriteLine(L"  pause - First two bytes of shellcode to be replaced with 0 byte JMP");
-		Console::WriteLine(L"  pause_int3 - First byte replaced with INT3 breakpoint <launch via debugger!>");
-		Console::WriteLine(L"Note: In these cases, you will be presented with the original bytes so");
-		Console::WriteLine(L"      you can patch them back in once paused inside a debugger and resume");
+		printf("This will allow you to transfer EIP control to a specified offset within a file\n");
+		printf("containing shellcode and then pause to support a malware analysis investigation\n");
+		printf("The file will be mapped to memory and maintain a handle, allowing shellcode\n");
+		printf("to egghunt for second stage payload as would have happened in original loader\n");
+		printf("-------------------------------------------------------------------------------\n");
+		printf("* WARNING: Patches are dynamically written to disk - ensure you have a backup *\n");
+		printf("-------------------------------------------------------------------------------\n");
+		printf("Usage: jmp2it.exe <file containing shellcode> <file offset to transfer EIP to>\n");
+		printf("Example: jmp2it.exe malware.doc 0x15C\n");
+		printf("  Explaination: The file will be mapped and code at 0x15C will immediately run\n");
+		printf("Example: jmp2it.exe malware.doc 0x15C pause\n");
+		printf("  Explaination: As above, but the first two bytes swapped to cause a pause loop\n");
+		printf("Example: jmp2it.exe malware.doc 0x15C addhandle another.doc pause\n");
+		printf("  Explaination: As above, but will create additional handle to specified file\n");
+		printf("-------------------------------------------------------------------------------\n");
+		printf("Optional extras (to be added after first two parameters):\n");
+		printf("  addhandle <path to file> - Create an arbatory handle to a specified file\n");
+		printf("Only one of the following two may be used:\n");
+		printf("  pause - First two bytes of shellcode to be replaced with 0 byte JMP\n");
+		printf("  pause_int3 - First byte replaced with INT3 breakpoint <launch via debugger!>\n");
+		printf("Note: In these cases, you will be presented with the original bytes so\n");
+		printf("      you can patch them back in once paused inside a debugger and resume\n");
 		return 1;
 	} 
 
 	/* Check that arguement 2 is a legimitmate memory address */
 	if (strlen(argv[2]) < 3 || (argv[2][0] != '0' && argv[2][1] != 'x'))
 	{
-		Console::WriteLine(L"Error: Parameter 2 must begin 0x to signify a hex offset has been used");
+		printf("Error: Parameter 2 must begin 0x to signify a hex offset has been used\n");
 		return 1;
 	}
 	
@@ -72,12 +70,12 @@ int main(int argc, char *argv[])
 	/* Error catching for handle creation */
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		Console::WriteLine(L"Error: Unable to create handle to file - check path to file");
+		printf("Error: Unable to create handle to file - check path to file\n");
 		return 1;
 	}
 
 	/* Check if 'addhandle' parameter has been requested */
-	/* N.B. Argument load is a little messy - will tidy up if more functionality is added */
+	/* N.B. Argument loading is a little messy - will tidy up if more functionality is added */
 	if (argc > 4 && !strcmp(argv[3], "addhandle"))
 	{
 	
@@ -91,7 +89,7 @@ int main(int argc, char *argv[])
 		/* Error catching for handle creation */
 		if (pAddHandle == INVALID_HANDLE_VALUE)
 		{
-			Console::WriteLine(L"Error: Unable to create handle to file (addhandle param) - check path to file");
+			printf("Error: Unable to create handle to file (addhandle param) - check path to file\n");
 			return 1;
 		}
 
@@ -107,25 +105,25 @@ int main(int argc, char *argv[])
 		/* Error catching for handle creation */
 		if (pAddHandle == INVALID_HANDLE_VALUE)
 		{
-			Console::WriteLine(L"Error: Unable to create handle to file (addhandle param) - check path to file");
+			printf("Error: Unable to create handle to file (addhandle param) - check path to file\n");
 			return 1;
 		}
 
+	/* If they have requested 'addhandle', but not provided enough parameters (i.e. not the path) */
 	} else if (argc == 4 && !strcmp(argv[3], "addhandle") || (argc == 5 && !strcmp(argv[4], "addhandle")))
 	{
-		Console::WriteLine(L"Error: Insufficient parameters to use 'addhandle' functionality");
+		printf("Error: Insufficient parameters to use 'addhandle' functionality\n");
 		return 1;
 	}
 
 	/* Map file into memory */
 	HANDLE pMap = CreateFileMapping(hFile, NULL, PAGE_EXECUTE_READWRITE, 0, 0, NULL);
-
 	LPVOID lpBase = MapViewOfFile(pMap, FILE_MAP_ALL_ACCESS | FILE_MAP_EXECUTE, 0, 0, 0);
 
 	/* Handle errors with the memory mapping */
 	if (!lpBase)
 	{
-		Console::WriteLine(L"Error: Unable to map file to memory");
+		printf("Error: Unable to map file to memory\n");
 		return 1;
 	}
 
@@ -133,42 +131,50 @@ int main(int argc, char *argv[])
 	int iOffset = strtol(argv[2], NULL, 16);
 	lpBase = (char*)lpBase + iOffset;
 
-	/* If 'pause' command entered, swap out bytes */
+	/* Prepare function pointer to shellcode address */
+	int (*pFunction)() = (int(*)(void))lpBase;
+	
+	/* Version 2 of breakpoint code - nothing in the user's code is modified */
 	if ((argc > 3 && !strcmp(argv[3], "pause")) || (argc > 5 && !strcmp(argv[5], "pause")))
 	{
-		char* pFirstTwo = (char*)lpBase;
-		char byte1 = pFirstTwo[0];
-		char byte2 = pFirstTwo[1];
+		printf("** As requested, the process has been paused ** \n\n" \
+			    "To proceed with debugging:\n" \
+			    "1. Load a debugger and attach it to this process\n" \
+				"2. If it has paused, instruct it to start running again\n" \
+				"3. Pause the process after a few seconds\n" \
+				"4. NOP the EF BE infinite loop which you should be on\n" \
+				"5. Step to the CALL immediately after and then 'step into' it\n\n" \
+				" === You will then be at the shellcode ===\n ");
 
-		pFirstTwo[0] = '\xEB';
-		pFirstTwo[1] = '\xFE';
+		__asm{ loc: jmp loc } // Assembly infinite loop
 
-		Console::WriteLine(L"Swapping first two bytes of shellcode: {0:X} {1:X} with EB FE to generate pause", byte1, byte2);
-
+	/* INT3 version */
 	} else if ((argc > 3 && !strcmp(argv[3], "pause_int3")) || (argc > 5 && !strcmp(argv[5], "pause_int3")))
 	{
 
 		if (!IsDebuggerPresent())
 		{
-			Console::WriteLine(L"Error: pause_int3 can only be used within the context of a debugger");
+			printf("Error: pause_int3 can only be used within the context of a debugger\n");
 			return 1;
 		}
 
-		char* pFirstTwo = (char*)lpBase;
-		char byte1 = pFirstTwo[0];
+	  	printf("** As requested, the process has been paused using INT3 ** \n\n" \
+			    "To proceed with debugging:\n" \
+			    "1. It should already be running within a debugger...\n" \
+				"2. If it has paused, instruct it to start running again\n" \
+				"3. Pause the process after a few seconds\n" \
+				"4. NOP the INT3 break which you should be on\n" \
+				"5. Step to the CALL immediately after and then 'step into' it\n\n" \
+				" === You will then be at the shellcode ===\n ");
 
-		pFirstTwo[0] = '\xCC';
+		__asm{ int 3 }
 
-		Console::WriteLine(L"First byte replaced with INT3 pointer (CC). Once program is pauses in a debugger at the breakpoint, replace CC (INT3) with the original byte: {0:X}\n", byte1);
 	} else {
-	
-		Console::WriteLine(L"No pause used, expect the program to crash if the memory location is incorrect");
+
+		printf("Executing without pausing, expect the program to crash if the memory location is incorrect\n");
+
 	}
 
-	/* Transfer EIP control */
-	Console::WriteLine(L"Calling requested function within mapped file...");
-	
-	int (*pFunction)() = (int(*)(void))lpBase;
-	pFunction();
+	pFunction(); // Execute the shellcode
 
 }
