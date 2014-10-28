@@ -21,13 +21,13 @@ using namespace System;
 int main(int argc, char *argv[])
 {
 	/* Intro line */
-	Console::WriteLine(L"JMP2IT - Created by Adam Kramer [2014] - Inspired by Malhost-Setup\n");
+	Console::WriteLine(L"** JMP2IT - Created by Adam Kramer [2014] - Inspired by Malhost-Setup **");
 	
 	/* Check that we have received the required arguments */
-	if (argc < 3 || argc > 4)
+	if (argc < 3)
 	{
 		Console::WriteLine(L"This will allow you to transfer EIP control to a specified offset within a file");
-		Console::WriteLine(L"containing shellcode and then pause to support a malware analysis investigation\n");
+		Console::WriteLine(L"containing shellcode and then pause to support a malware analysis investigation");
 		Console::WriteLine(L"The file will be mapped to memory and maintain a handle, allowing shellcode");
 		Console::WriteLine(L"to egghunt for second stage payload as would have happened in original loader");
 		Console::WriteLine(L"-------------------------------------------------------------------------------");
@@ -35,10 +35,17 @@ int main(int argc, char *argv[])
 		Console::WriteLine(L"-------------------------------------------------------------------------------");
 		Console::WriteLine(L"Usage: jmp2it.exe <file containing shellcode> <file offset to transfer EIP to>");
 		Console::WriteLine(L"Example: jmp2it.exe malware.doc 0x15C");
+		Console::WriteLine(L"  Explaination: The file will be mapped and code at 0x15C will immediately run");
+		Console::WriteLine(L"Example: jmp2it.exe malware.doc 0x15C pause");
+		Console::WriteLine(L"  Explaination: As above, but the first two bytes swapped to cause a pause loop");
+		Console::WriteLine(L"Example: jmp2it.exe malware.doc 0x15C addhandle another.doc pause");
+		Console::WriteLine(L"  Explaination: As above, but will create additional handle to specified file");
 		Console::WriteLine(L"-------------------------------------------------------------------------------");
-		Console::WriteLine(L"Optional extras as 3rd parameter (only one may be used):");
-		Console::WriteLine(L"pause - First two bytes of shellcode to be replaced with 0 byte JMP");
-		Console::WriteLine(L"pause_int3 - First byte replaced with INT3 breakpoint <only launch in debugger!>");
+		Console::WriteLine(L"Optional extras (to be added after first two parameters):");
+		Console::WriteLine(L"  addhandle <path to file> - Create an arbatory handle to a specified file");
+		Console::WriteLine(L"Only one of the following two may be used:");
+		Console::WriteLine(L"  pause - First two bytes of shellcode to be replaced with 0 byte JMP");
+		Console::WriteLine(L"  pause_int3 - First byte replaced with INT3 breakpoint <launch via debugger!>");
 		Console::WriteLine(L"Note: In these cases, you will be presented with the original bytes so");
 		Console::WriteLine(L"      you can patch them back in once paused inside a debugger and resume");
 		return 1;
@@ -67,6 +74,42 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	/* Check if 'addhandle' parameter has been requested */
+	/* N.B. Argument load is a little messy - will tidy up if more functionality is added */
+ if (!strcmp(argv[3], "addhandle"))
+	{
+	
+		wchar_t z[MAX_PATH];
+		size_t size_of_z = sizeof(z);
+		mbstowcs_s(&size_of_z, z, argv[4], MAX_PATH);
+		LPWSTR pAddHandleFile = z;
+
+		HANDLE pAddHandle = CreateFile (pAddHandleFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+		/* Error catching for handle creation */
+		if (pAddHandle == INVALID_HANDLE_VALUE)
+		{
+			Console::WriteLine(L"Error: Unable to create handle to file (addhandle param) - check path to file");
+			return 1;
+		}
+
+	} else if (!strcmp(argv[4], "addhandle"))
+	{
+		wchar_t z[MAX_PATH];
+		size_t size_of_z = sizeof(z);
+		mbstowcs_s(&size_of_z, z, argv[5], MAX_PATH);
+		LPWSTR pAddHandleFile = z;
+
+		HANDLE pAddHandle = CreateFile (pAddHandleFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+		/* Error catching for handle creation */
+		if (pAddHandle == INVALID_HANDLE_VALUE)
+		{
+			Console::WriteLine(L"Error: Unable to create handle to file (addhandle param) - check path to file");
+			return 1;
+		}
+	}
+
 	/* Create backup file */
 	Console::WriteLine(L"Automatically generating backup of input file as JMP2IT-InputFile.BAK");
 	CopyFile(pFile, L"JMP2IT-InputFile.BAK", FALSE);
@@ -88,7 +131,7 @@ int main(int argc, char *argv[])
 	lpBase = (char*)lpBase + iOffset;
 
 	/* If 'pause' command entered, swap out bytes */
-	if (!strcmp(argv[3], "pause"))
+	if (!strcmp(argv[3], "pause") || !strcmp(argv[5], "pause"))
 	{
 		char* pFirstTwo = (char*)lpBase;
 		char byte1 = pFirstTwo[0];
@@ -99,7 +142,7 @@ int main(int argc, char *argv[])
 
 		Console::WriteLine(L"Swapping first two bytes of shellcode: {0:X} {1:X} with EB FE to generate pause", byte1, byte2);
 
-	} else if (!strcmp(argv[3], "pause_int3")) 
+	} else if (!strcmp(argv[3], "pause_int3") || !strcmp(argv[5], "pause_int3")) 
 	{
 		char* pFirstTwo = (char*)lpBase;
 		char byte1 = pFirstTwo[0];
