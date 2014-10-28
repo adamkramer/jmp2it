@@ -15,11 +15,13 @@
 
 #include "stdafx.h"
 #include "windows.h"
+#include "Strsafe.h"
 
 using namespace System;
 
 int main(int argc, char *argv[])
 {
+
 	/* Intro line */
 	Console::WriteLine(L"** JMP2IT v1.1 - Created by Adam Kramer [2014] - Inspired by Malhost-Setup **");
 	
@@ -31,7 +33,7 @@ int main(int argc, char *argv[])
 		Console::WriteLine(L"The file will be mapped to memory and maintain a handle, allowing shellcode");
 		Console::WriteLine(L"to egghunt for second stage payload as would have happened in original loader");
 		Console::WriteLine(L"-------------------------------------------------------------------------------");
-		Console::WriteLine(L"* Warning: Patches are dynamically written to disk - ensure you have a backup *");
+		Console::WriteLine(L"* WARNING: Patches are dynamically written to disk - ensure you have a backup *");
 		Console::WriteLine(L"-------------------------------------------------------------------------------");
 		Console::WriteLine(L"Usage: jmp2it.exe <file containing shellcode> <file offset to transfer EIP to>");
 		Console::WriteLine(L"Example: jmp2it.exe malware.doc 0x15C");
@@ -49,7 +51,7 @@ int main(int argc, char *argv[])
 		Console::WriteLine(L"Note: In these cases, you will be presented with the original bytes so");
 		Console::WriteLine(L"      you can patch them back in once paused inside a debugger and resume");
 		return 1;
-	}
+	} 
 
 	/* Check that arguement 2 is a legimitmate memory address */
 	if (strlen(argv[2]) < 3 || (argv[2][0] != '0' && argv[2][1] != 'x'))
@@ -76,7 +78,7 @@ int main(int argc, char *argv[])
 
 	/* Check if 'addhandle' parameter has been requested */
 	/* N.B. Argument load is a little messy - will tidy up if more functionality is added */
-	if (!strcmp(argv[3], "addhandle"))
+	if (argc > 4 && !strcmp(argv[3], "addhandle"))
 	{
 	
 		wchar_t z[MAX_PATH];
@@ -93,7 +95,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
-	} else if (!strcmp(argv[4], "addhandle"))
+	} else if (argc > 5 && !strcmp(argv[4], "addhandle"))
 	{
 		wchar_t z[MAX_PATH];
 		size_t size_of_z = sizeof(z);
@@ -108,11 +110,12 @@ int main(int argc, char *argv[])
 			Console::WriteLine(L"Error: Unable to create handle to file (addhandle param) - check path to file");
 			return 1;
 		}
-	}
 
-	/* Create backup file */
-	Console::WriteLine(L"Automatically generating backup of input file as JMP2IT-InputFile.BAK");
-	CopyFile(pFile, L"JMP2IT-InputFile.BAK", FALSE);
+	} else if (argc == 4 && !strcmp(argv[3], "addhandle") || (argc == 5 && !strcmp(argv[4], "addhandle")))
+	{
+		Console::WriteLine(L"Error: Insufficient parameters to use 'addhandle' functionality");
+		return 1;
+	}
 
 	/* Map file into memory */
 	HANDLE pMap = CreateFileMapping(hFile, NULL, PAGE_EXECUTE_READWRITE, 0, 0, NULL);
@@ -131,7 +134,7 @@ int main(int argc, char *argv[])
 	lpBase = (char*)lpBase + iOffset;
 
 	/* If 'pause' command entered, swap out bytes */
-	if (!strcmp(argv[3], "pause") || !strcmp(argv[5], "pause"))
+	if ((argc > 3 && !strcmp(argv[3], "pause")) || (argc > 5 && !strcmp(argv[5], "pause")))
 	{
 		char* pFirstTwo = (char*)lpBase;
 		char byte1 = pFirstTwo[0];
@@ -142,19 +145,28 @@ int main(int argc, char *argv[])
 
 		Console::WriteLine(L"Swapping first two bytes of shellcode: {0:X} {1:X} with EB FE to generate pause", byte1, byte2);
 
-	} else if (!strcmp(argv[3], "pause_int3") || !strcmp(argv[5], "pause_int3")) 
+	} else if ((argc > 3 && !strcmp(argv[3], "pause_int3")) || (argc > 5 && !strcmp(argv[5], "pause_int3")))
 	{
+
+		if (!IsDebuggerPresent())
+		{
+			Console::WriteLine(L"Error: pause_int3 can only be used within the context of a debugger");
+			return 1;
+		}
+
 		char* pFirstTwo = (char*)lpBase;
 		char byte1 = pFirstTwo[0];
 
 		pFirstTwo[0] = '\xCC';
 
 		Console::WriteLine(L"First byte replaced with INT3 pointer (CC). Once program is pauses in a debugger at the breakpoint, replace CC (INT3) with the original byte: {0:X}\n", byte1);
+	} else {
+	
+		Console::WriteLine(L"No pause used, expect the program to crash if the memory location is incorrect");
 	}
 
 	/* Transfer EIP control */
 	Console::WriteLine(L"Calling requested function within mapped file...");
-	Console::WriteLine(L"Note: Expect the program to crash if the memory location is incorrect");
 	
 	int (*pFunction)() = (int(*)(void))lpBase;
 	pFunction();
