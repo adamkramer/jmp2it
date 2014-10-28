@@ -21,7 +21,7 @@ using namespace System;
 int main(int argc, char *argv[])
 {
 	/* Intro line */
-	Console::WriteLine(L"** JMP2IT - Created by Adam Kramer [2014] - Inspired by Malhost-Setup **");
+	Console::WriteLine(L"** JMP2IT v1.1 - Created by Adam Kramer [2014] - Inspired by Malhost-Setup **");
 	
 	/* Check that we have received the required arguments */
 	if (argc < 3)
