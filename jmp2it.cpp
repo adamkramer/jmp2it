@@ -37,17 +37,17 @@ int main(int argc, char *argv[])
 		printf("Example: jmp2it.exe malware.doc 0x15C\n");
 		printf("  Explaination: The file will be mapped and code at 0x15C will immediately run\n");
 		printf("Example: jmp2it.exe malware.doc 0x15C pause\n");
-		printf("  Explaination: As above, but the first two bytes swapped to cause a pause loop\n");
+		printf("  Explaination: As above, with JMP SHORT 0xFE inserted pre-offset causing loop\n");
 		printf("Example: jmp2it.exe malware.doc 0x15C addhandle another.doc pause\n");
 		printf("  Explaination: As above, but will create additional handle to specified file\n");
 		printf("-------------------------------------------------------------------------------\n");
 		printf("Optional extras (to be added after first two parameters):\n");
 		printf("  addhandle <path to file> - Create an arbatory handle to a specified file\n");
 		printf("Only one of the following two may be used:\n");
-		printf("  pause - First two bytes of shellcode to be replaced with 0 byte JMP\n");
-		printf("  pause_int3 - First byte replaced with INT3 breakpoint <launch via debugger!>\n");
-		printf("Note: In these cases, you will be presented with the original bytes so\n");
-		printf("      you can patch them back in once paused inside a debugger and resume\n");
+		printf("  pause - Inserts JMP SHORT 0xFE just before offset causing infinite loop\n");
+		printf("  pause_int3 - Inserts INT3 just before offset <launch via debugger!>\n");
+		printf("Note: In these cases, you will be presented with step by step instructions\n");
+		printf("      on what you need to do inside a debugger to resume the analysis\n");
 		return 1;
 	} 
 
