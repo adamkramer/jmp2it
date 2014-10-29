@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 		printf("The file will be mapped to memory and maintain a handle, allowing shellcode\n");
 		printf("to egghunt for second stage payload as would have happened in original loader\n");
 		printf("-------------------------------------------------------------------------------\n");
-		printf("* WARNING: Patches are dynamically written to disk - ensure you have a backup *\n");
+		printf("Patches / self modifications are dynamically written to jmp2it-flypaper.out\n");
 		printf("-------------------------------------------------------------------------------\n");
 		printf("Usage: jmp2it.exe <file containing shellcode> <file offset to transfer EIP to>\n");
 		printf("Example: jmp2it.exe malware.doc 0x15C\n");
@@ -64,6 +64,10 @@ int main(int argc, char *argv[])
 	mbstowcs_s(&size_of_w, w, argv[1], MAX_PATH);
 	LPWSTR pFile = w;
 
+	/* Copy original file to temp 'flypaper' file */
+	CopyFile(pFile, L"jmp2it-flypaper.out", FALSE);
+	pFile = L"jmp2it-flypaper.out";
+
 	/* Create handle to requested file */
 	HANDLE hFile = CreateFile(pFile, GENERIC_ALL, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -71,6 +75,13 @@ int main(int argc, char *argv[])
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		printf("Error: Unable to create handle to file - check path to file\n");
+		return 1;
+	}
+
+	/* Check if offset is greater than the size of the file */
+	if (GetFileSize(hFile, NULL) < (DWORD)strtol(argv[2], NULL, 16))
+	{
+		printf("Error: Offset is larger than selected file size");
 		return 1;
 	}
 
