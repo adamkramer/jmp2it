@@ -11,12 +11,15 @@ Patches / self modifications are dynamically written to jmp2it-flypaper.out
 Usage: jmp2it.exe [file containing shellcode] [file offset to transfer EIP to]
 
 Example: jmp2it.exe malware.doc 0x15C
+
   Explaination: The file will be mapped and code at 0x15C will immediately run
   
 Example: jmp2it.exe malware.doc 0x15C pause
+
   Explaination: As above, with JMP SHORT 0xFE inserted pre-offset causing loop
   
 Example: jmp2it.exe malware.doc 0x15C addhandle another.doc pause
+
   Explaination: As above, but will create additional handle to specified file
 
 Optional extras (to be added after first two parameters):
@@ -26,6 +29,7 @@ Optional extras (to be added after first two parameters):
 Only one of the following two may be used:
 
   pause - Inserts JMP SHORT 0xFE just before offset causing infinite loop
+  
   pause_int3 - Inserts INT3 just before offset [launch via debugger!]
 
 Note: In these cases, you will be presented with step by step instructions
