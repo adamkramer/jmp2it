@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 {
 
 	/* Intro line */
-	printf("** JMP2IT v1.3 - Created by Adam Kramer [2014] - Inspired by Malhost-Setup **\n");
+	printf("** JMP2IT v1.4 - Created by Adam Kramer [2014] - Inspired by Malhost-Setup **\n");
 	
 	/* Check that we have received the required arguments - if not, display help page */
 	if (argc < 3)
